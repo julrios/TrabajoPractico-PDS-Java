@@ -1,0 +1,147 @@
+@startuml
+
+' Clases principales del sistema
+class Paciente {
+    - nombre: String
+    - documento: String
+    - historiaClinica: String
+    - estado: IEstadoPaciente
+    + solicitarTurno(especialidad: String, disponibilidad: Date): void
+    + cambiarEstado(nuevoEstado: IEstadoPaciente): void
+    + realizarAccion(): void
+    + actualizarHistoriaClinica(historia: String): void
+    + notificarCambio(mensaje: String): void
+}
+
+class Turno {
+    - tipo: TipoTurno
+    - fecha: Date
+    - paciente: Paciente
+    - medico: Medico
+    + cancelar(): void
+    + notificarCambio(mensaje: String): void
+}
+
+class Medico {
+    - nombre: String
+    - especialidades: List<Especialidad>
+    - horariosDisponibles: List<Date>
+    + visualizarTurnos(): List<Turno>
+    + notificarCambio(mensaje: String): void
+    + agregarEspecialidad(especialidad: Especialidad): void
+    + actualizarDisponibilidad(horario: Date): void
+}
+
+class Especialidad {
+    - nombre: String
+}
+
+class TurnoFactory {
+    + crearTurno(tipo: TipoTurno, fecha: Date, paciente: Paciente, medico: Medico): Turno
+}
+
+class BaseDeDatosAdapter {
+    + guardarPaciente(paciente: Paciente): void
+    + guardarTurno(turno: Turno): void
+    + obtenerTurnosPorMedico(medico: Medico): List<Turno>
+}
+
+interface INotificador {
+    + enviarNotificacion(destinatario: String, mensaje: String): void
+}
+
+class NotificadorEmail implements INotificador {
+    - static instance: NotificadorEmail - constructor() {} 
+    + static getInstance(): NotificadorEmail 
+    + enviarNotificacion(destinatario: String, mensaje: String): void }
+}
+
+class NotificadorSMS implements INotificador {
+    - static instance: NotificadorSMS - constructor() {} 
+    + static getInstance(): NotificadorSMS 
+    + enviarNotificacion(destinatario: String, mensaje: String): void }
+}
+
+interface IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class PendienteDeTurno implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class TurnoAsignado implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class EnTratamiento implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class Alta implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class TipoTurno {
+    <<enumeration>>
+    REGULAR
+    URGENCIA
+}
+
+class CriterioAsignacion {
+    + asignarTurno(paciente: Paciente, especialidad: Especialidad, disponibilidad: Date): Turno
+}
+
+class SistemaNotificacion {
+    + enviarNotificacion(usuario: Usuario, mensaje: String): void
+}
+
+abstract class Usuario {
+    + nombre: String
+    + email: String
+    + notificar(mensaje: String): void
+}
+
+' Controladores del sistema
+class PacienteController {
+    + crearPaciente(nombre: String, documento: String): Paciente
+    + actualizarEstado(idPaciente: int, nuevoEstado: IEstadoPaciente): void
+}
+
+class TurnoController {
+    + crearTurno(tipo: TipoTurno, fecha: Date, idPaciente: int, idMedico: int): Turno
+    + cancelarTurno(idTurno: int): void
+}
+
+class MedicoController {
+    + listarTurnos(idMedico: int): List<Turno>
+    + asignarEspecialidad(idMedico: int, especialidad: Especialidad): void
+}
+
+Paciente "1" --> IEstadoPaciente : "Estado actual"
+Paciente "1" --> "0..*" Turno : "Turnos"
+Paciente ..> INotificador : "Notifica"
+PacienteController --> Paciente : "Gestiona"
+BaseDeDatosAdapter --> Paciente : "Guarda/Consulta"
+
+Turno "1" --> "1" Medico : "Atendido"
+Turno "1" --> "1" TipoTurno : "Tipo específico"
+Turno ..> INotificador : "Notifica"
+BaseDeDatosAdapter --> Turno : "Guarda/Consulta"
+TurnoFactory ..> Turno : "Crea"
+TurnoController --> Turno : "Gestiona"
+TurnoController ..> TurnoFactory : "Crea"
+TurnoController --> CriterioAsignacion : "Asigna"
+
+MedicoController --> Medico : "Gestiona"
+Medico "1" --> "0..*" Especialidad : "Especialidades"
+Medico ..> INotificador : "Notifica cambios"
+
+SistemaNotificacion ..> INotificador : "Usa para enviar notificaciones"
+SistemaNotificacion --> NotificadorEmail 
+SistemaNotificacion --> NotificadorSMS
+
+Usuario <|-- Paciente
+Usuario <|-- Medico
+
+@enduml
