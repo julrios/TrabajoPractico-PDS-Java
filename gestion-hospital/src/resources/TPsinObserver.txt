@@ -18,6 +18,7 @@ class Turno {
     - fecha: Date
     - paciente: Paciente
     - medico: Medico
+    - especialidad: Especialidad
     + cancelar(): void
     + notificarCambio(mensaje: String): void
 }
@@ -51,14 +52,16 @@ interface INotificador {
 }
 
 class NotificadorEmail implements INotificador {
-    - static instance: NotificadorEmail - constructor() {} 
-    + static getInstance(): NotificadorEmail 
+    - static instance: NotificadorEmail
+    - constructor() {}
+    + static getInstance(): NotificadorEmail
     + enviarNotificacion(destinatario: String, mensaje: String): void }
 }
 
 class NotificadorSMS implements INotificador {
-    - static instance: NotificadorSMS - constructor() {} 
-    + static getInstance(): NotificadorSMS 
+    - static instance: NotificadorSMS
+    - constructor() {}
+    + static getInstance(): NotificadorSMS
     + enviarNotificacion(destinatario: String, mensaje: String): void }
 }
 
@@ -118,28 +121,27 @@ class MedicoController {
     + asignarEspecialidad(idMedico: int, especialidad: Especialidad): void
 }
 
-Paciente "1" --> IEstadoPaciente : "Estado actual"
+Paciente "1" --> "1" IEstadoPaciente : "Estado actual"
 Paciente "1" --> "0..*" Turno : "Turnos"
-Paciente ..> INotificador : "Notifica"
-PacienteController --> Paciente : "Gestiona"
-BaseDeDatosAdapter --> Paciente : "Guarda/Consulta"
+Paciente "1" <-- "1" SistemaNotificacion : "Notifica"
+PacienteController "1" --> "1" Paciente : "Gestiona"
+BaseDeDatosAdapter "1"  --> "1..*"  Paciente : "Guarda/Consulta"
 
 Turno "1" --> "1" Medico : "Atendido"
 Turno "1" --> "1" TipoTurno : "Tipo específico"
-Turno ..> INotificador : "Notifica"
-BaseDeDatosAdapter --> Turno : "Guarda/Consulta"
-TurnoFactory ..> Turno : "Crea"
-TurnoController --> Turno : "Gestiona"
-TurnoController ..> TurnoFactory : "Crea"
-TurnoController --> CriterioAsignacion : "Asigna"
+Turno --> SistemaNotificacion : "Notifica cambios"
+BaseDeDatosAdapter "1" --> "1..*"  Turno : "Guarda/Consulta"
+TurnoFactory "1     " --> "1..*"  Turno : "Crea"
+TurnoController "1"  --> "1"  Turno : "Gestiona"
+TurnoController "1"  --> "1"  TurnoFactory : "Crea"
+TurnoController "1"  --> "1" CriterioAsignacion : "Asigna"
 
-MedicoController --> Medico : "Gestiona"
-Medico "1" --> "0..*" Especialidad : "Especialidades"
-Medico ..> INotificador : "Notifica cambios"
+MedicoController "1"  --> "1     "  Medico : "Gestiona"
+Medico "1   " --> "0..*" Especialidad : "Especialidades"
+Medico "1..* " <-- "1    "  SistemaNotificacion : "Notifica"
 
-SistemaNotificacion ..> INotificador : "Usa para enviar notificaciones"
-SistemaNotificacion --> NotificadorEmail 
-SistemaNotificacion --> NotificadorSMS
+SistemaNotificacion "1"  ..|> "1" INotificador : "Usa para enviar notificaciones"
+
 
 Usuario <|-- Paciente
 Usuario <|-- Medico
