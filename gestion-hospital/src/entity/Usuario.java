@@ -1,6 +1,8 @@
 package entity;
 
-public abstract class Usuario {
+import interfaces.Observer;
+
+public abstract class Usuario implements Observer {
     private String nombre;
     private String email;
 
@@ -26,8 +28,11 @@ public abstract class Usuario {
     }
 
     public void notificarCambio(String mensaje) {
-        System.out.println("Notificación para " + nombre + ": " + mensaje);
+        System.out.println("Usuario notificado: " + mensaje);
     }
 
-    public abstract void actualizar(String mensaje);
+    @Override
+    public void actualizar(String mensaje) {
+        System.out.println("Actualización para " + nombre + ": " + mensaje);
+    }
 }

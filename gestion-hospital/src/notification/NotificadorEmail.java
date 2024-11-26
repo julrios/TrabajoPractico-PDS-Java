@@ -14,6 +14,11 @@ public class NotificadorEmail extends Notificador {
 
     @Override
     public void enviarNotificacion(String destinatario, String mensaje) {
-        System.out.println("Enviando email a " + destinatario + ": " + mensaje);
+        System.out.println("Email enviado a " + destinatario + ": " + mensaje);
+    }
+
+    @Override
+    public void actualizar(String mensaje) {
+        System.out.println("NotificadorEmail recibió mensaje: " + mensaje);
     }
 }

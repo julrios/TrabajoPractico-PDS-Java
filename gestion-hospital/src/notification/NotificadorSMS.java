@@ -14,6 +14,11 @@ public class NotificadorSMS extends Notificador {
 
     @Override
     public void enviarNotificacion(String destinatario, String mensaje) {
-        System.out.println("Enviando SMS a " + destinatario + ": " + mensaje);
+        System.out.println("SMS enviado a " + destinatario + ": " + mensaje);
+    }
+
+    @Override
+    public void actualizar(String mensaje) {
+        System.out.println("NotificadorSMS recibió mensaje: " + mensaje);
     }
 }

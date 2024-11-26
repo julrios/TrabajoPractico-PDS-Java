@@ -1,27 +1,48 @@
 package entity;
 
-import notification.GestorNotificaciones;
-import java.util.Date;
+import interfaces.Observer;
+import interfaces.Sujeto;
 
-public class Turno {
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class Turno implements Sujeto {
     private TipoTurno tipo;
     private Date fecha;
     private Paciente paciente;
     private Medico medico;
     private Especialidad especialidad;
-    private GestorNotificaciones gestorNotificaciones;
+    private List<Observer> observadores;
 
-    public Turno(TipoTurno tipo, Date fecha, Paciente paciente, Medico medico, Especialidad especialidad, GestorNotificaciones gestorNotificaciones) {
+    public Turno(TipoTurno tipo, Date fecha, Paciente paciente, Medico medico, Especialidad especialidad) {
         this.tipo = tipo;
         this.fecha = fecha;
         this.paciente = paciente;
         this.medico = medico;
         this.especialidad = especialidad;
-        this.gestorNotificaciones = gestorNotificaciones;
+        this.observadores = new ArrayList<>();
+    }
+
+    @Override
+    public void agregarObservador(Observer observador) {
+        observadores.add(observador);
+    }
+
+    @Override
+    public void eliminarObservador(Observer observador) {
+        observadores.remove(observador);
+    }
+
+    @Override
+    public void notificarObservadores(String mensaje) {
+        for (Observer observador : observadores) {
+            observador.actualizar(mensaje);
+        }
     }
 
     public void cancelar() {
         System.out.println("El turno ha sido cancelado.");
-        gestorNotificaciones.notificarCambio(paciente, "Turno cancelado.");
+        notificarObservadores("El turno fue cancelado.");
     }
 }
