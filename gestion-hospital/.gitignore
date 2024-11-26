@@ -1,4 +1,5 @@
 ### IntelliJ IDEA ###
+gestion-hospital/.idea
 .idea
 out/
 !**/src/main/**/out/
