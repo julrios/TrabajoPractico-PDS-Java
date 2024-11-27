@@ -1,0 +1,169 @@
+@startuml
+
+' Interfaz Observer
+interface Observer {
+    + actualizar(mensaje: String): void
+}
+
+' Interfaz Sujeto
+interface Sujeto {
+    + agregarObservador(observador: Observer): void
+    + eliminarObservador(observador: Observer): void
+    + notificarObservadores(mensaje: String): void
+}
+
+' Clases principales del sistema
+abstract class Usuario {
+    + nombre: String
+    + email: String
+    + notificarCambio(mensaje: String): void
+    + actualizar(mensaje: String): void
+}
+
+class Paciente extends Usuario{
+    - documento: String
+    - historiaClinica: String
+    - estado: IEstadoPaciente
+    - gestorNotificaciones: GestorNotificaciones
+    + solicitarTurno(especialidad: String, disponibilidad: Date): void
+    + cambiarEstado(nuevoEstado: IEstadoPaciente): void
+    + realizarAccion(): void
+    + actualizarHistoriaClinica(historia: String): void
+}
+
+interface IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class PendienteDeTurno implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class TurnoAsignado implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class EnTratamiento implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class Alta implements IEstadoPaciente {
+    + realizarAccion(paciente: Paciente): void
+}
+
+class Turno {
+    - tipo: TipoTurno
+    - fecha: Date
+    - paciente: Paciente
+    - medico: Medico
+    - especialidad: Especialidad
+    - gestorNotificaciones: GestorNotificaciones
+    + cancelar(): void
+}
+
+class Medico extends Usuario {
+    - especialidades: List<Especialidad>
+    - horariosDisponibles: List<Date>
+    - gestorNotificaciones: GestorNotificaciones
+    + visualizarTurnos(): List<Turno>
+    + notificarCambio(mensaje: String): void
+    + agregarEspecialidad(especialidad: Especialidad): void
+    + actualizarDisponibilidad(horario: Date): void
+}
+
+class Especialidad {
+    - nombre: String
+}
+
+class TurnoFactory {
+    + crearTurno(tipo: TipoTurno, fecha: Date, paciente: Paciente, medico: Medico, especialidad: Especialidad): Turno
+}
+
+class BaseDeDatosAdapter {
+    + guardarPaciente(paciente: Paciente): void
+    + guardarTurno(turno: Turno): void
+    + obtenerTurnosPorMedico(medico: Medico): List<Turno>
+}
+
+abstract class Notificador {
+    + enviarNotificacion(destinatario: String, mensaje: String): void
+}
+
+class NotificadorEmail extends Notificador {
+    - static instance: NotificadorEmail
+    - constructor() {}
+    + static getInstance(): NotificadorEmail
+    + enviarNotificacion(destinatario: String, mensaje: String): void
+}
+
+class NotificadorSMS extends Notificador {
+    - static instance: NotificadorSMS
+    - constructor() {}
+    + static getInstance(): NotificadorSMS
+    + enviarNotificacion(destinatario: String, mensaje: String): void
+}
+
+class TipoTurno {
+    <<enumeration>>
+    REGULAR
+    URGENCIA
+}
+
+class CriterioAsignacion {
+    + asignarTurno(paciente: Paciente, especialidad: Especialidad, disponibilidad: Date): Turno
+}
+
+
+class GestorNotificaciones {
+    - observadores: List<Observer>
+    + agregarObservador(observador: Observer): void
+    + eliminarObservador(observador: Observer): void
+    + notificarObservadores(mensaje: String): void
+    + notificarCambio(usuario: Usuario, mensaje: String): void
+}
+
+' Controladores del sistema
+class PacienteController {
+    + crearPaciente(nombre: String, documento: String): Paciente
+    + actualizarEstado(idPaciente: int, nuevoEstado: IEstadoPaciente): void
+}
+
+class TurnoController {
+    + crearTurno(tipo: TipoTurno, fecha: Date, idPaciente: int, idMedico: int, especialidad: Especialidad): Turno
+    + cancelarTurno(idTurno: int): void
+}
+
+class MedicoController {
+    + listarTurnos(idMedico: int): List<Turno>
+    + asignarEspecialidad(idMedico: int, especialidad: Especialidad): void
+}
+
+Paciente "1    " --> "1   " IEstadoPaciente : "Estado"
+Paciente "1" --> "0..*          " Turno : "Registra"
+PacienteController "1" --> "1    " Paciente : "Gestiona"
+BaseDeDatosAdapter --> Paciente : "Guarda/Consulta"
+Paciente "1" *-- "1" GestorNotificaciones
+
+Turno "1" --> "1" Medico : "Atendido"
+Turno "1" --> "1" TipoTurno : "Tipo específico"
+Turno "1" --> "1" Especialidad : "Contiene"
+BaseDeDatosAdapter --> Turno : "Guarda/Consulta"
+TurnoFactory ..> Turno : "Crea"
+TurnoController --> Turno : "Gestiona"
+TurnoController ..> TurnoFactory : "Crea"
+TurnoController "1" --> "1" CriterioAsignacion : "Asigna"
+Turno *-- GestorNotificaciones
+
+MedicoController --> Medico : "Gestiona"
+Medico "1" o-- "0..*     " Especialidad : "Especialidades"
+Medico *-- GestorNotificaciones : gestorNotificaciones
+
+CriterioAsignacion "1" --> "1" Especialidad : "Usa"
+
+GestorNotificaciones ..|> Observer
+GestorNotificaciones ..|> Sujeto
+Observer <|.. Notificador
+
+
+
+@enduml
